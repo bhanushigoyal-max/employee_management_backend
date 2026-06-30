@@ -1,5 +1,6 @@
 import { connectDB } from '../../src/config/db';
 import mongoose from 'mongoose';
+import { MESSAGES } from '../../src/lang/messages';
 
 jest.mock('mongoose', () => ({
   connect: jest.fn(),
@@ -9,7 +10,6 @@ describe('Database Config', () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
-    jest.resetModules();
     process.env = { ...originalEnv };
     jest.clearAllMocks();
     jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -21,15 +21,13 @@ describe('Database Config', () => {
     process.env = originalEnv;
   });
 
-  it('should connect to MongoDB successfully', async () => {
-    process.env.MONGO_URI = 'mongodb://localhost:27017/test';
-    const mockConnection = { connection: { host: 'localhost' } };
-    (mongoose.connect as jest.Mock).mockResolvedValue(mockConnection);
+  it('should throw an error if MONGO_URI is not defined', async () => {
+    delete process.env.MONGO_URI;
 
     await connectDB();
 
-    expect(mongoose.connect).toHaveBeenCalledWith('mongodb://localhost:27017/test');
-    expect(console.log).toHaveBeenCalledWith('MongoDB Connected: localhost');
+    expect(console.error).toHaveBeenCalledWith(MESSAGES.SYSTEM.DB_CONNECTION_ERROR(MESSAGES.SYSTEM.MONGO_URI_MISSING));
+    expect(process.exit).toHaveBeenCalledWith(1);
   });
 
   it('should exit with 1 if connection fails', async () => {
@@ -38,16 +36,18 @@ describe('Database Config', () => {
 
     await connectDB();
 
-    expect(console.error).toHaveBeenCalledWith('Error connecting to MongoDB: Connection Failed');
+    expect(console.error).toHaveBeenCalledWith(MESSAGES.SYSTEM.DB_CONNECTION_ERROR('Connection Failed'));
     expect(process.exit).toHaveBeenCalledWith(1);
   });
 
-  it('should throw an error if MONGO_URI is not defined', async () => {
-    delete process.env.MONGO_URI;
+  it('should connect to MongoDB successfully', async () => {
+    process.env.MONGO_URI = 'mongodb://localhost:27017/test';
+    const mockConnection = { connections: [{ readyState: 1 }], connection: { host: 'localhost' } };
+    (mongoose.connect as jest.Mock).mockResolvedValue(mockConnection);
 
     await connectDB();
 
-    expect(console.error).toHaveBeenCalledWith('Error connecting to MongoDB: MONGO_URI is not defined in the environment variables.');
-    expect(process.exit).toHaveBeenCalledWith(1);
+    expect(mongoose.connect).toHaveBeenCalledWith('mongodb://localhost:27017/test');
+    expect(console.log).toHaveBeenCalledWith(MESSAGES.SYSTEM.DB_CONNECTED('localhost'));
   });
 });

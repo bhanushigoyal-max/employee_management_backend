@@ -9,10 +9,9 @@ jest.mock('../../src/middleware/upload.middleware', () => ({
     fields: () => (req: any, res: any, next: any) => next()
   }
 }));
-jest.mock('../../src/middleware/normalize.middleware', () => ({
-  normalizeEmployeeFormData: (req: any, res: any, next: any) => next()
+jest.mock('../../src/middleware/validate.middleware', () => ({
+  validateRequest: () => (req: any, res: any, next: any) => next()
 }));
-
 const app = express();
 app.use(express.json());
 app.use('/employees', employeeRoutes);
