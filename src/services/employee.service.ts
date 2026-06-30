@@ -1,7 +1,6 @@
 import { EmployeeModel } from '../models/employee.model';
 import { IEmployee } from '../types/employee.types';
-import fs from 'fs';
-import path from 'path';
+import { AWSService } from './aws.service';
 
 export class EmployeeService {
   /**
@@ -119,17 +118,15 @@ export class EmployeeService {
   }
 
   /**
-   * Helper function to delete a physical file from the file system.
+   * Helper function to delete a file from AWS S3.
    * Prevents accumulating orphaned files when employees are deleted or updated.
    * 
-   * @param filePath - The relative path of the file to delete (e.g., 'uploads/image.png').
+   * @param filePath - The URL or relative path of the file to delete.
    */
   static deleteFileIfExists(filePath?: string) {
     if (filePath) {
-      const fullPath = path.join(__dirname, '../../', filePath);
-      if (fs.existsSync(fullPath)) {
-        fs.unlinkSync(fullPath);
-      }
+      // Delete from AWS S3
+      AWSService.deleteFile(filePath);
     }
   }
 }

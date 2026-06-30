@@ -31,7 +31,8 @@ export const employeeValidationSchema = z.object({
     .min(2, MESSAGES.VALIDATION.LAST_NAME_MIN)
     .regex(/^[^0-9]*$/, MESSAGES.VALIDATION.LAST_NAME_NO_NUMBERS),
   email: z.string({ message: MESSAGES.VALIDATION.EMAIL_REQUIRED })
-    .email(MESSAGES.VALIDATION.EMAIL_INVALID),
+    .email(MESSAGES.VALIDATION.EMAIL_INVALID)
+    .max(50, "Email must not exceed 50 characters"),
   mobile: z.string({ message: MESSAGES.VALIDATION.MOBILE_REQUIRED })
     .regex(/^\d+$/, MESSAGES.VALIDATION.MOBILE_ONLY_NUMBERS)
     .length(10, MESSAGES.VALIDATION.MOBILE_LENGTH),

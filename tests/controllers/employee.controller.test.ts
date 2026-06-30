@@ -38,17 +38,7 @@ describe('Employee Controller', () => {
   };
 
   describe('createEmployee', () => {
-    it('should return 400 if validation fails', async () => {
-      mockRequest.body = { firstName: '123' }; // Invalid name
 
-      await EmployeeController.createEmployee(mockRequest as Request, mockResponse as Response);
-
-      expect(mockResponse.status).toHaveBeenCalledWith(400);
-      expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
-        success: false,
-        message: 'Validation failed'
-      }));
-    });
 
     it('should return 400 if resume file is missing', async () => {
       mockRequest.body = validEmployeeData;
@@ -121,6 +111,40 @@ describe('Employee Controller', () => {
         success: false,
         message: 'DB error'
       }));
+    });
+  });
+
+  describe('getDepartmentSkills', () => {
+    it('should return all skills if no department queried', () => {
+      EmployeeController.getDepartmentSkills(mockRequest as Request, mockResponse as Response);
+      
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        data: expect.any(Object)
+      }));
+    });
+
+    it('should return specific skills for a valid department', () => {
+      mockRequest.query = { department: 'Development' };
+      EmployeeController.getDepartmentSkills(mockRequest as Request, mockResponse as Response);
+      
+      expect(mockResponse.status).toHaveBeenCalledWith(200);
+      expect(mockResponse.json).toHaveBeenCalledWith(expect.objectContaining({
+        success: true,
+        data: expect.any(Array)
+      }));
+    });
+
+    it('should return 404 for an invalid department', () => {
+      mockRequest.query = { department: 'Invalid' };
+      EmployeeController.getDepartmentSkills(mockRequest as Request, mockResponse as Response);
+      
+      expect(mockResponse.status).toHaveBeenCalledWith(404);
+      expect(mockResponse.json).toHaveBeenCalledWith({
+        success: false,
+        message: 'Department not found'
+      });
     });
   });
 

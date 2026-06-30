@@ -1,9 +1,8 @@
 import { Request, Response } from 'express';
 import { EmployeeService } from '../services/employee.service';
-import { employeeValidationSchema } from '../validation/employee.validation';
 import { IEmployee } from '../types/employee.types';
-import { z } from 'zod';
 import { MESSAGES } from '../lang/messages';
+import { Department } from '../types/employee.types';
 
 export class EmployeeController {
   /**
@@ -17,7 +16,7 @@ export class EmployeeController {
    */
   static async createEmployee(req: Request, res: Response): Promise<void> {
     try {
-      const data = employeeValidationSchema.parse(req.body);
+      const data = req.body;
 
       const files = req.files as {
         [fieldname: string]: Express.Multer.File[];
@@ -69,18 +68,6 @@ export class EmployeeController {
         data: employee,
       });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        res.status(400).json({
-          success: false,
-          message: MESSAGES.VALIDATION.VALIDATION_FAILED,
-          errors: error.issues.map((err) => ({
-            field: err.path.join("."),
-            message: err.message,
-          })),
-        });
-        return;
-      }
-
       if ((error as any).code === 11000) {
         const field = Object.keys((error as any).keyValue)[0];
 
@@ -169,7 +156,7 @@ export class EmployeeController {
     try {
       const id = req.params.id as string;
 
-      const data = employeeValidationSchema.partial().parse(req.body);
+      const data = req.body;
 
       const files = req.files as {
         [fieldname: string]: Express.Multer.File[];
@@ -234,17 +221,6 @@ export class EmployeeController {
         data: updatedEmployee,
       });
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return void res.status(400).json({
-          success: false,
-          message: MESSAGES.VALIDATION.VALIDATION_FAILED,
-          errors: error.issues.map((err) => ({
-            field: err.path.join("."),
-            message: err.message,
-          })),
-        });
-      }
-
       if ((error as any).code === 11000) {
         const field = Object.keys((error as any).keyValue)[0];
 
@@ -280,5 +256,36 @@ export class EmployeeController {
     } catch (error) {
       res.status(500).json({ success: false, message: (error as Error).message });
     }
+  }
+
+  /**
+   * Retrieves predefined skills based on the department.
+   * 
+   * @param req - The Express request object.
+   * @param res - The Express response object.
+   * @returns void. Sends a 200 response with skills data.
+   */
+  static getDepartmentSkills(req: Request, res: Response): void {
+    const skillsByDepartment = {
+      [Department.DEVELOPMENT]: ['JavaScript', 'TypeScript', 'React', 'Node.js', 'Python', 'Java', 'C++', 'Go', 'HTML', 'CSS', 'MongoDB', 'SQL'],
+      [Department.QA]: ['Manual Testing', 'Automation Testing', 'Selenium', 'Cypress', 'Jest', 'Postman', 'Appium', 'JIRA'],
+      [Department.HR]: ['Recruitment', 'Onboarding', 'Employee Relations', 'Performance Management', 'Payroll', 'HR Policies', 'Conflict Resolution'],
+      [Department.MARKETING]: ['SEO', 'Content Marketing', 'Social Media', 'Google Ads', 'Analytics', 'Copywriting', 'Email Marketing', 'Brand Management'],
+      [Department.SALES]: ['Lead Generation', 'CRM', 'Negotiation', 'B2B Sales', 'Cold Calling', 'Account Management', 'Sales Strategy']
+    };
+
+    const department = req.query.department as string;
+
+    if (department) {
+      const skills = (skillsByDepartment as any)[department];
+      if (skills) {
+        res.status(200).json({ success: true, data: skills });
+      } else {
+        res.status(404).json({ success: false, message: 'Department not found' });
+      }
+      return;
+    }
+
+    res.status(200).json({ success: true, data: skillsByDepartment });
   }
 }

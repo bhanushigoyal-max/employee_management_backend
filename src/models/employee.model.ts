@@ -10,7 +10,7 @@ const employeeSchema = new Schema<IEmployee>(
   {
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true, maxlength: 50 },
     mobile: { type: String, required: true, unique: true },
     dateOfBirth: { type: Date, required: true },
     gender: { type: String, required: true },

@@ -1,9 +1,8 @@
 import { EmployeeService } from '../../src/services/employee.service';
 import { EmployeeModel } from '../../src/models/employee.model';
-import fs from 'fs';
+import { AWSService } from '../../src/services/aws.service';
 
 jest.mock('../../src/models/employee.model');
-jest.mock('fs');
 
 describe('Employee Service', () => {
   beforeEach(() => {
@@ -95,13 +94,13 @@ describe('Employee Service', () => {
         resume: 'uploads/resume.pdf' 
       });
       (EmployeeModel.findByIdAndDelete as jest.Mock).mockResolvedValue({ _id: '1' });
-      (fs.existsSync as jest.Mock).mockReturnValue(true);
-      (fs.unlinkSync as jest.Mock).mockReturnValue(undefined);
+      
+      const deleteFileSpy = jest.spyOn(AWSService, 'deleteFile').mockResolvedValue();
 
       const result = await EmployeeService.deleteEmployee('1');
 
       expect(EmployeeModel.findById).toHaveBeenCalledWith('1');
-      expect(fs.unlinkSync).toHaveBeenCalledTimes(2);
+      expect(deleteFileSpy).toHaveBeenCalledTimes(2);
       expect(EmployeeModel.findByIdAndDelete).toHaveBeenCalledWith('1');
       expect(result).toEqual({ _id: '1' });
     });

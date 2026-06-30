@@ -4,19 +4,8 @@ import multer from 'multer';
 import { Request } from 'express';
 import { MESSAGES } from '../lang/messages';
 
-import { S3Client } from '@aws-sdk/client-s3';
+import { s3Client } from '../services/aws.service';
 import multerS3 from 'multer-s3';
-
-// Initialize the AWS S3 Client for file uploads
-// We sanitize the environment variables (.trim().replace(...)) to prevent AuthorizationHeaderMalformed errors
-// caused by accidental invisible characters or quotes in the .env file.
-const s3Client = new S3Client({
-  region: (process.env.AWS_REGION || 'ap-south-1').trim().replace(/['"]/g, ''),
-  credentials: {
-    accessKeyId: (process.env.AWS_ACCESS_KEY_ID || '').trim().replace(/['"]/g, ''),
-    secretAccessKey: (process.env.AWS_SECRET_ACCESS_KEY || '').trim().replace(/['"]/g, ''),
-  }
-});
 
 // Configure Multer to stream file uploads directly to the AWS S3 bucket
 const storage = multerS3({

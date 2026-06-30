@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { EmployeeController } from '../controllers/employee.controller';
 import { uploadMiddleware } from '../middleware/upload.middleware';
-import { normalizeEmployeeFormData } from '../middleware/normalize.middleware';
+import { validateRequest } from '../middleware/validate.middleware';
+import { employeeValidationSchema } from '../validation/employee.validation';
 
 const router = Router();
 
@@ -25,13 +26,19 @@ const employeeUploads = uploadMiddleware.fields([
  * @route POST /api/employees
  * @desc Create a new employee with uploaded files
  */
-router.post('/', employeeUploads, normalizeEmployeeFormData, EmployeeController.createEmployee);
+router.post('/', employeeUploads, validateRequest(employeeValidationSchema), EmployeeController.createEmployee);
 
 /**
  * @route GET /api/employees
  * @desc Retrieve all employees
  */
 router.get('/', EmployeeController.getAllEmployees);
+
+/**
+ * @route GET /api/employees/skills
+ * @desc Retrieve predefined skills based on department
+ */
+router.get('/skills/department', EmployeeController.getDepartmentSkills);
 
 /**
  * @route GET /api/employees/:id
@@ -43,7 +50,7 @@ router.get('/:id', EmployeeController.getEmployeeById);
  * @route PUT /api/employees/:id
  * @desc Update an existing employee and handle optional file replacements
  */
-router.put('/:id', employeeUploads, normalizeEmployeeFormData, EmployeeController.updateEmployee);
+router.put('/:id', employeeUploads, validateRequest(employeeValidationSchema.partial()), EmployeeController.updateEmployee);
 
 /**
  * @route DELETE /api/employees/:id
